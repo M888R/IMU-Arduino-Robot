@@ -330,16 +330,22 @@ void setup() {
 void loop() {
   // servo.write(straightAngle);
   // driveForwardAnglePID(100, 7.0, &isWithinDistance);
-
   servo.write(rightAngle);
   delay(200);
-  followArcUltrasonicPID(200, 100, 1.8, 25, firstExitAngle);
+  for (int i = 0; i <= 5; i++) { // figure 8 5 times then stop
+    followArcUltrasonicPID(200, 100, 1.8, 25, firstExitAngle);
+    motorRun(0, 0);
+    servo.write(leftAngle);
+    driveForwardAnglePID(100, 7.0, ([]() {
+      return (getSonar() <= OBSTACLE_DISTANCE);
+    }));
+    followArcUltrasonicPID(200, 100, 1.8, 25, secondExitAngle);
+    motorRun(0, 0);
+    servo.write(rightAngle);
+    driveForwardAnglePID(100, 7.0, ([]() {
+      return (getSonar() <= OBSTACLE_DISTANCE);
+    }));
+  }
   motorRun(0, 0);
-  servo.write(leftAngle);
-  driveForwardAnglePID(100, 7.0, ([]() {
-    return (getSonar() <= OBSTACLE_DISTANCE);
-  }));
-  followArcUltrasonicPID(200, 100, 1.8, 25, secondExitAngle);
-  motorRun(0, 0);
-  delay(10000);
+  delay(20000);
 }
