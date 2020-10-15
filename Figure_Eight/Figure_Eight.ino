@@ -115,7 +115,7 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
     angleError *= PI / 180.0;
     angleError = atan2(sin(angleError), cos(angleError));
     angleError *= 180.0 / PI;
-    if (abs(angleError) < 0.5) {
+    if (abs(angleError) < 1) {
       break;
     }
 

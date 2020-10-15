@@ -1,12 +1,12 @@
-# 1 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino"
+# 1 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 // === Libraries and global variables === //
 
-# 4 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino" 2
-# 5 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino" 2
-# 6 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino" 2
-# 7 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino" 2
-# 8 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino" 2
-# 28 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino"
+# 4 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 2
+# 5 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 2
+# 6 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 2
+# 7 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 2
+# 8 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 2
+# 28 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 Servo servo;
 byte servoOffset = 0;
 float speedOffset;//batteryVoltageCompensationToSpeed
@@ -68,7 +68,7 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
   while (true) {
 
     float currentDistance = getSonar();
-    currentDistance = (currentDistance > 100) ? 70.0 : currentDistance;
+    // currentDistance = (currentDistance > 100) ? 70.0 : currentDistance;
     float distanceError = targetDistance - currentDistance;
     double correctionPower = distanceError * kP;
     float leftPower = 0;
@@ -97,7 +97,7 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
     angleError *= 3.1415926535897932384626433832795 / 180.0;
     angleError = atan2(sin(angleError), cos(angleError));
     angleError *= 180.0 / 3.1415926535897932384626433832795;
-    if (((angleError)>0?(angleError):-(angleError)) < 0.5) {
+    if (((angleError)>0?(angleError):-(angleError)) < 1) {
       break;
     }
 
@@ -173,14 +173,14 @@ float getYaw() {
 void moveDrive(double left, double right) {
   calculateVoltageCompensation();
   int leftPower = (left == 0) ? 0 : left + 
-# 193 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino" 3
+# 193 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 3
                                           copysign /**< The alias for copysign().	*/
-# 193 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino"
+# 193 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
                                                    (speedOffset, left);
   int rightPower = (right == 0) ? 0 : right + 
-# 194 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino" 3
+# 194 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 3
                                              copysign /**< The alias for copysign().	*/
-# 194 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino"
+# 194 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
                                                       (speedOffset, right);
   // Serial.print("Time: ");
   // Serial.print(millis());
@@ -200,7 +200,7 @@ void moveDrive(double left, double right) {
  * \return Value of the distance
 
  */
-# 210 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino"
+# 210 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 float getSonar() {
   unsigned long pingTime;
   float distance;
@@ -219,7 +219,7 @@ float getSonar() {
  * \brief  Move the selected right and left motorsyy
 
  */
-# 226 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino"
+# 226 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 void motorRun(int speedl, int speedr) {
   int dirL = 0, dirR = 0;
   if (speedl > 0) {
@@ -257,7 +257,7 @@ void motorRun(int speedl, int speedr) {
  * \brief  Calculate voltage compensation
 
  */
-# 261 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino"
+# 261 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 void calculateVoltageCompensation() {
   float voltageOffset = 8.4 - getBatteryVoltage();
   speedOffset = voltageOffset * 20;
@@ -270,7 +270,7 @@ void calculateVoltageCompensation() {
  * \return Value of the battery voltage
 
  */
-# 270 "c:\\Users\\Manas\\Documents\\USC Classes\\AME 101\\Car Code\\Project 1\\Figure_Eight\\Figure_Eight.ino"
+# 270 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 float getBatteryVoltage() {
   pinMode(A0, 0x0);
   int batteryADC = analogRead(A0);
@@ -334,15 +334,22 @@ void setup() {
 void loop() {
   // servo.write(straightAngle);
   // driveForwardAnglePID(100, 7.0, &isWithinDistance);
-
   servo.write(rightAngle);
   delay(200);
-  followArcUltrasonicPID(200, 100, 1.8, 25, firstExitAngle);
-  servo.write(leftAngle);
-  driveForwardAnglePID(100, 7.0, ([]() {
-    float current = getSonar();
-    return (current <= 30);
-  }));
-  moveDrive(0, 0);
-  delay(10000);
+  for (int i = 0; i <= 5; i++) { // figure 8 5 times then stop
+    followArcUltrasonicPID(200, 100, 1.8, 25, firstExitAngle);
+    motorRun(0, 0);
+    servo.write(leftAngle);
+    driveForwardAnglePID(100, 7.0, ([]() {
+      return (getSonar() <= 30);
+    }));
+    followArcUltrasonicPID(200, 100, 1.8, 25, secondExitAngle);
+    motorRun(0, 0);
+    servo.write(rightAngle);
+    driveForwardAnglePID(100, 7.0, ([]() {
+      return (getSonar() <= 30);
+    }));
+  }
+  motorRun(0, 0);
+  delay(20000);
 }

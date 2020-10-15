@@ -1,4 +1,4 @@
-c:\Users\Manas\Documents\USC\ Classes\AME\ 101\Car\ Code\Project\ 1\build\libraries\Servo\avr\Servo.cpp.o: \
+c:\Users\manas\Dev\IMU-Arduino-Robot\build\libraries\Servo\avr\Servo.cpp.o: \
  C:\Program\ Files\ (x86)\Arduino\libraries\Servo\src\avr\Servo.cpp \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino/Arduino.h \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino/binary.h \

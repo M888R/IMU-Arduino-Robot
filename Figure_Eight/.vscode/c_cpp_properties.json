@@ -17,8 +17,8 @@
                 "C:/Program Files (x86)/Arduino/libraries/Servo/src/",
                 "C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src",
                 "C:/Program Files (x86)/Arduino/hardware/tools/avr/lib/gcc/avr/7.3.0/include",
-                "C:/Users/Manas/Documents/Arduino/libraries/Adafruit_BNO055",
-                "C:/Users/Manas/Documents/Arduino/libraries/Adafruit_Unified_Sensor",
+                "C:/Users/manas/Documents/Arduino/libraries/Adafruit_BNO055",
+                "C:/Users/manas/Documents/Arduino/libraries/Adafruit_Unified_Sensor",
                 "C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/circuitplay32u4"
             ],
             "defines": [
