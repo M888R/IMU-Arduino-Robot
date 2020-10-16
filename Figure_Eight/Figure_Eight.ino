@@ -21,7 +21,7 @@
 #define OBSTACLE_DISTANCE   30
 #define OBSTACLE_DISTANCE_LOW 15
 
-#define MAX_DISTANCE    200   //cm
+#define MAX_DISTANCE    300   //cm
 #define SONIC_TIMEOUT   (MAX_DISTANCE*45)
 #define SOUND_VELOCITY    340   //soundVelocity: 340m/s
 
@@ -33,10 +33,14 @@ const   u8 rightAngle = 5;  // Right
 const   u8 leftAngle  = 180;// Left
 
 // point of reference: left side of one of the circles
-const int firstExitAngle = 34.23;
+const int firstExitAngle = 45;
 const int secondExitAngle = 180 + firstExitAngle;
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
+
+int sgn(double num) {
+  return (num != 0) ? abs(num) / num : 0;
+}
 
 void displayCalStatus(void)
 {
@@ -82,11 +86,21 @@ void debugPrintIMUData() {
 }
 
 void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targetDistance, double exitAngle) {
+  double current = getYaw();
+  current *= PI/180.0;
+  current = atan2(sin(current), cos(current));
+  current *= 180.0/PI;
+  // Serial.print("\tangle: ");
+  // Serial.print(current);
+  double previousAngleError = exitAngle - current;
+  previousAngleError *= PI / 180.0;
+  previousAngleError = atan2(sin(previousAngleError), cos(previousAngleError));
+  previousAngleError *= 180.0 / PI;
 
   while (true) {
 
     float currentDistance = getSonar();
-    // currentDistance = (currentDistance > 100) ? 70.0 : currentDistance;
+    currentDistance = (currentDistance > 100) ? 70.0 : currentDistance;
     float distanceError = targetDistance - currentDistance;
     double correctionPower = distanceError * kP;
     float leftPower = 0;
@@ -102,7 +116,8 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
       Serial.print(rightPower, 4);
       Serial.print("\tcurrentDistance: ");
       Serial.print(currentDistance, 4);
-      Serial.println("");
+      //Serial.println("");
+      
     } else { // currentServoAngle >= straightAngle, left-facing
       leftPower = leftSpeed + correctionPower;
       rightPower = rightSpeed - correctionPower;
@@ -111,19 +126,33 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
     motorRun(leftPower, rightPower);
 
     double current = getYaw();
+    current *= PI/180.0;
+    current = atan2(sin(current), cos(current));
+    current *= 180.0/PI;
+    Serial.print("\tangle: ");
+    Serial.print(current);
     double angleError = exitAngle - current;
     angleError *= PI / 180.0;
     angleError = atan2(sin(angleError), cos(angleError));
     angleError *= 180.0 / PI;
-    if (abs(angleError) < 1) {
+    Serial.print("\tangleError: ");
+    Serial.print(angleError);
+    Serial.println("");
+
+    if (abs(angleError) <= 5) {
+      break;
+    }
+    if (sgn(angleError) != sgn(previousAngleError)) {
       break;
     }
 
-    delay(10);
+    previousAngleError = angleError;
+
+    delay(5);
   }
 }
 
-void driveForwardAnglePID(int speed, float kP, bool (*endCondition)()) {
+void driveForwardAnglePID(int speed, float kP, int wait, bool (*endCondition)()) {
   auto startTime = millis();
   double startAngle = getYaw();
   double target = 0;
@@ -145,12 +174,12 @@ void driveForwardAnglePID(int speed, float kP, bool (*endCondition)()) {
 //    Serial.print(currentCorrected);
 //    Serial.print("\terror: ");
 //    Serial.print(error);
-//    Serial.println("");
+    //Serial.println("");
     error *= kP;
     
     motorRun(speed + error, speed - error); 
     
-    if (endCondition())
+    if (endCondition() && (millis() - startTime) >= wait)
       break;
 
     delay(10);
@@ -297,7 +326,7 @@ bool isWithinDistance() {
 // === SETUP FUNCTION === //
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(10);
   pinMode(PIN_DIRECTION_LEFT, OUTPUT);
   pinMode(PIN_MOTOR_PWM_LEFT, OUTPUT);
@@ -336,13 +365,13 @@ void loop() {
     followArcUltrasonicPID(200, 100, 1.8, 25, firstExitAngle);
     motorRun(0, 0);
     servo.write(leftAngle);
-    driveForwardAnglePID(100, 7.0, ([]() {
+    driveForwardAnglePID(200, 7.0, 200, ([]() {
       return (getSonar() <= OBSTACLE_DISTANCE);
     }));
     followArcUltrasonicPID(200, 100, 1.8, 25, secondExitAngle);
     motorRun(0, 0);
     servo.write(rightAngle);
-    driveForwardAnglePID(100, 7.0, ([]() {
+    driveForwardAnglePID(200, 7.0, 200, ([]() {
       return (getSonar() <= OBSTACLE_DISTANCE);
     }));
   }
