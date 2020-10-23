@@ -5,6 +5,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
+#include "SoftwareSerial.h"
 
 #define PIN_SERVO           2       
 
@@ -30,15 +31,16 @@ byte servoOffset = 0;
 float speedOffset;//batteryVoltageCompensationToSpeed
 const   u8 straightAngle  = 80; // Front
 const   u8 rightAngle = 0;  // Right
-const   u8 leftAngle  = 180;// Left
+const   u8 leftAngle  = 155;// Left
 
 // point of reference: left side of one of the circles
 const int firstExitAngle = 0; // was 32
-const int secondExitAngle = 70; // was 155
+const int secondExitAngle = 80; // was 155
 
 double previousSonarReading = 0;
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
+SoftwareSerial bluetooth(10, 11);
 
 int sgn(double num) {
   return (num != 0) ? abs(num) / num : 0;
@@ -99,28 +101,33 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
   previousAngleError = atan2(sin(previousAngleError), cos(previousAngleError));
   previousAngleError *= 180.0 / PI;
 
+  auto currentServoAngle = servo.read();
+
   while (true) {
 
     float currentDistance = getSonar();
     //currentDistance = (currentDistance > 200) ? 200.0 : currentDistance;
-    if ((currentDistance - previousSonarReading) >= 100) {
+    if ((currentDistance - previousSonarReading) >= 75) {
       currentDistance = previousSonarReading; // ignore spikes in sonar reading
     }
+
     float distanceError = targetDistance - currentDistance;
     double correctionPower = distanceError * kP;
+    // if (distanceError > 0 && distanceError <= 5) {
+    //   correctionPower -= 100; // fake integral term
+    // }
     float leftPower = 0;
     float rightPower = 0;
     
-    auto currentServoAngle = servo.read();
     if (currentServoAngle < straightAngle) { // right-facing
       leftPower = leftSpeed - correctionPower;
       rightPower = rightSpeed + correctionPower;
-      Serial.print("right-facing, leftSpeed: ");
-      Serial.print(leftPower, 4);
-      Serial.print("\trightSpeed: ");
-      Serial.print(rightPower, 4);
-      Serial.print("\tcurrentDistance: ");
-      Serial.print(currentDistance, 4);
+      // Serial.print("right-facing, leftSpeed: ");
+      // Serial.print(leftPower, 4);
+      // Serial.print("\trightSpeed: ");
+      // Serial.print(rightPower, 4);
+      // Serial.print("\tcurrentDistance: ");
+      // Serial.print(currentDistance, 4);
       //Serial.println("");
       
     } else { // currentServoAngle >= straightAngle, left-facing
@@ -134,21 +141,26 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
     tempExitAngle *= PI / 180.0;
     tempExitAngle = atan2(sin(tempExitAngle), cos(tempExitAngle));
     tempExitAngle *= 180.0 / PI;
-    double current = getYaw();
+    current = getYaw();
     current *= PI/180.0;
     current = atan2(sin(current), cos(current));
     current *= 180.0/PI;
-    Serial.print("\tangle: ");
-    Serial.print(current);
+    // Serial.print("\tangle: ");
+    // Serial.print(current);
     double angleError = tempExitAngle - current;
     angleError *= PI / 180.0;
     angleError = atan2(sin(angleError), cos(angleError));
     angleError *= 180.0 / PI;
-    Serial.print("\tangleError: ");
-    Serial.print(angleError);
-    Serial.println("");
+    // Serial.print("\tangleError: ");
+    // Serial.print(angleError);
+    // Serial.println("");
 
-    if (abs(angleError) <= 5) {
+    // bluetooth.print("dist: ");
+    // bluetooth.print(currentDistance);
+    // bluetooth.print("\tang: ");
+    // bluetooth.print(current);
+
+    if (abs(angleError) <= 5) { // remove one of these as a test
       break;
     }
     if (sgn(angleError) != sgn(previousAngleError) && abs(angleError) <= 50) {
@@ -258,8 +270,12 @@ float getSonar() {
     distance = (float)pingTime * SOUND_VELOCITY / 2 / 10000; // calculate the distance based on the time
   else
     distance = MAX_DISTANCE;
-  distance = (previousSonarReading * 0.5) + (distance * 0.5);
+  // if ((distance - previousSonarReading) >= 75) {
+  //   distance = previousSonarReading; // ignore spikes in sonar reading
+  // }
+  //distance = (previousSonarReading * 0.5) + (distance * 0.5);
   previousSonarReading = distance;
+
   return distance;
 }
   /*!
@@ -340,6 +356,7 @@ bool isWithinDistance() {
 
 void setup() {
   Serial.begin(115200);
+  bluetooth.begin(9600);
   delay(10);
   pinMode(PIN_DIRECTION_LEFT, OUTPUT);
   pinMode(PIN_MOTOR_PWM_LEFT, OUTPUT);
@@ -353,6 +370,7 @@ void setup() {
 
   Serial.print("Battery voltage: ");
   Serial.println(getBatteryVoltage(), 4);
+  bluetooth.println("Bluetooth Initialized!");
   
   /* Initialise the sensor */
   if(!bno.begin())
@@ -374,26 +392,30 @@ void loop() {
   // driveForwardAnglePID(100, 7.0, &isWithinDistance);
   servo.write(leftAngle);
   delay(500);
+
+  // while (true) {
+  //   motorRun(255, 80);
+  // }
   // driveForwardAnglePID(200, 7.0, 2000, 45, ([]() {
   //   return (getSonar() <= OBSTACLE_DISTANCE);
   // }));
   // while (true) {
-  //   //Serial.println(servo.read());
-  //   servo.write(0);
+  //   Serial.println(getSonar());
   //   delay(5);
   // }
   for (int i = 0; i <= 5; i++) { // figure 8 5 times then stop
 
-    driveForwardAnglePID(200, 7.0, 250, firstExitAngle, ([]() {
+    driveForwardAnglePID(255, 7.0, 250, firstExitAngle, ([]() {
       return (getSonar() <= OBSTACLE_DISTANCE);
     }));
-    followArcUltrasonicPID(100, 255, 3.5, 15, secondExitAngle);
+    //followArcUltrasonicPID(100, 255, 3.5, 15, secondExitAngle);
+    followArcUltrasonicPID(180, 255, 10.0, 28, secondExitAngle);
     motorRun(0, 0);
     servo.write(rightAngle);
-    driveForwardAnglePID(200, 7.0, 250, secondExitAngle, ([]() {
+    driveForwardAnglePID(255, 7.0, 250, secondExitAngle, ([]() {
       return (getSonar() <= OBSTACLE_DISTANCE);
     }));
-    followArcUltrasonicPID(255, 100, 1.8, 25, firstExitAngle);
+    followArcUltrasonicPID(255, 180, 10.0, 28, firstExitAngle);
     motorRun(0, 0);
     servo.write(leftAngle);
   }

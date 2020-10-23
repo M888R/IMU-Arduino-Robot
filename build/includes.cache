@@ -31,6 +31,11 @@
   },
   {
     "Sourcefile": "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\build\\sketch\\Figure_Eight.ino.cpp",
+    "Include": "SoftwareSerial.h",
+    "Includepath": "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries\\SoftwareSerial\\src"
+  },
+  {
+    "Sourcefile": "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\build\\sketch\\Figure_Eight.ino.cpp",
     "Include": "",
     "Includepath": null
   },
@@ -86,6 +91,11 @@
   },
   {
     "Sourcefile": "C:\\Users\\manas\\Documents\\Arduino\\libraries\\Adafruit_BNO055\\Adafruit_BNO055.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries\\SoftwareSerial\\src\\SoftwareSerial.cpp",
     "Include": "",
     "Includepath": null
   }

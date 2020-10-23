@@ -6,21 +6,23 @@
 # 6 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 2
 # 7 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 2
 # 8 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 2
-# 28 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
+# 9 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 2
+# 29 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 Servo servo;
 byte servoOffset = 0;
 float speedOffset;//batteryVoltageCompensationToSpeed
 const u8 straightAngle = 80; // Front
 const u8 rightAngle = 0; // Right
-const u8 leftAngle = 180;// Left
+const u8 leftAngle = 155;// Left
 
 // point of reference: left side of one of the circles
 const int firstExitAngle = 0; // was 32
-const int secondExitAngle = 70; // was 155
+const int secondExitAngle = 80; // was 155
 
 double previousSonarReading = 0;
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
+SoftwareSerial bluetooth(10, 11);
 
 int sgn(double num) {
   return (num != 0) ? ((num)>0?(num):-(num)) / num : 0;
@@ -81,28 +83,33 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
   previousAngleError = atan2(sin(previousAngleError), cos(previousAngleError));
   previousAngleError *= 180.0 / 3.1415926535897932384626433832795;
 
+  auto currentServoAngle = servo.read();
+
   while (true) {
 
     float currentDistance = getSonar();
     //currentDistance = (currentDistance > 200) ? 200.0 : currentDistance;
-    if ((currentDistance - previousSonarReading) >= 100) {
+    if ((currentDistance - previousSonarReading) >= 75) {
       currentDistance = previousSonarReading; // ignore spikes in sonar reading
     }
+
     float distanceError = targetDistance - currentDistance;
     double correctionPower = distanceError * kP;
+    // if (distanceError > 0 && distanceError <= 5) {
+    //   correctionPower -= 100; // fake integral term
+    // }
     float leftPower = 0;
     float rightPower = 0;
 
-    auto currentServoAngle = servo.read();
     if (currentServoAngle < straightAngle) { // right-facing
       leftPower = leftSpeed - correctionPower;
       rightPower = rightSpeed + correctionPower;
-      Serial.print("right-facing, leftSpeed: ");
-      Serial.print(leftPower, 4);
-      Serial.print("\trightSpeed: ");
-      Serial.print(rightPower, 4);
-      Serial.print("\tcurrentDistance: ");
-      Serial.print(currentDistance, 4);
+      // Serial.print("right-facing, leftSpeed: ");
+      // Serial.print(leftPower, 4);
+      // Serial.print("\trightSpeed: ");
+      // Serial.print(rightPower, 4);
+      // Serial.print("\tcurrentDistance: ");
+      // Serial.print(currentDistance, 4);
       //Serial.println("");
 
     } else { // currentServoAngle >= straightAngle, left-facing
@@ -116,21 +123,26 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
     tempExitAngle *= 3.1415926535897932384626433832795 / 180.0;
     tempExitAngle = atan2(sin(tempExitAngle), cos(tempExitAngle));
     tempExitAngle *= 180.0 / 3.1415926535897932384626433832795;
-    double current = getYaw();
+    current = getYaw();
     current *= 3.1415926535897932384626433832795/180.0;
     current = atan2(sin(current), cos(current));
     current *= 180.0/3.1415926535897932384626433832795;
-    Serial.print("\tangle: ");
-    Serial.print(current);
+    // Serial.print("\tangle: ");
+    // Serial.print(current);
     double angleError = tempExitAngle - current;
     angleError *= 3.1415926535897932384626433832795 / 180.0;
     angleError = atan2(sin(angleError), cos(angleError));
     angleError *= 180.0 / 3.1415926535897932384626433832795;
-    Serial.print("\tangleError: ");
-    Serial.print(angleError);
-    Serial.println("");
+    // Serial.print("\tangleError: ");
+    // Serial.print(angleError);
+    // Serial.println("");
 
-    if (((angleError)>0?(angleError):-(angleError)) <= 5) {
+    // bluetooth.print("dist: ");
+    // bluetooth.print(currentDistance);
+    // bluetooth.print("\tang: ");
+    // bluetooth.print(current);
+
+    if (((angleError)>0?(angleError):-(angleError)) <= 5) { // remove one of these as a test
       break;
     }
     if (sgn(angleError) != sgn(previousAngleError) && ((angleError)>0?(angleError):-(angleError)) <= 50) {
@@ -213,14 +225,14 @@ float getYaw() {
 void moveDrive(double left, double right) {
   calculateVoltageCompensation();
   int leftPower = (left == 0) ? 0 : left + 
-# 233 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 3
+# 245 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 3
                                           copysign /**< The alias for copysign().	*/
-# 233 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
+# 245 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
                                                    (speedOffset, left);
   int rightPower = (right == 0) ? 0 : right + 
-# 234 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 3
+# 246 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino" 3
                                              copysign /**< The alias for copysign().	*/
-# 234 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
+# 246 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
                                                       (speedOffset, right);
   // Serial.print("Time: ");
   // Serial.print(millis());
@@ -240,7 +252,7 @@ void moveDrive(double left, double right) {
  * \return Value of the distance
 
  */
-# 250 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
+# 262 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 float getSonar() {
   unsigned long pingTime;
   float distance;
@@ -252,8 +264,12 @@ float getSonar() {
     distance = (float)pingTime * 340 /*soundVelocity: 340m/s*/ / 2 / 10000; // calculate the distance based on the time
   else
     distance = 300 /*cm*/;
-  distance = (previousSonarReading * 0.5) + (distance * 0.5);
+  // if ((distance - previousSonarReading) >= 75) {
+  //   distance = previousSonarReading; // ignore spikes in sonar reading
+  // }
+  //distance = (previousSonarReading * 0.5) + (distance * 0.5);
   previousSonarReading = distance;
+
   return distance;
 }
   /*!
@@ -261,7 +277,7 @@ float getSonar() {
  * \brief  Move the selected right and left motorsyy
 
  */
-# 268 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
+# 284 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 void motorRun(int speedl, int speedr) {
   int dirL = 0, dirR = 0;
   if (speedl > 0) {
@@ -299,7 +315,7 @@ void motorRun(int speedl, int speedr) {
  * \brief  Calculate voltage compensation
 
  */
-# 303 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
+# 319 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 void calculateVoltageCompensation() {
   float voltageOffset = 8.4 - getBatteryVoltage();
   speedOffset = voltageOffset * 20;
@@ -312,7 +328,7 @@ void calculateVoltageCompensation() {
  * \return Value of the battery voltage
 
  */
-# 312 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
+# 328 "c:\\Users\\manas\\Dev\\IMU-Arduino-Robot\\Figure_Eight\\Figure_Eight.ino"
 float getBatteryVoltage() {
   pinMode(A0, 0x0);
   int batteryADC = analogRead(A0);
@@ -344,6 +360,7 @@ bool isWithinDistance() {
 
 void setup() {
   Serial.begin(115200);
+  bluetooth.begin(9600);
   delay(10);
   pinMode(4, 0x1);
   pinMode(6, 0x1);
@@ -357,6 +374,7 @@ void setup() {
 
   Serial.print("Battery voltage: ");
   Serial.println(getBatteryVoltage(), 4);
+  bluetooth.println("Bluetooth Initialized!");
 
   /* Initialise the sensor */
   if(!bno.begin())
@@ -378,26 +396,30 @@ void loop() {
   // driveForwardAnglePID(100, 7.0, &isWithinDistance);
   servo.write(leftAngle);
   delay(500);
+
+  // while (true) {
+  //   motorRun(255, 80);
+  // }
   // driveForwardAnglePID(200, 7.0, 2000, 45, ([]() {
   //   return (getSonar() <= OBSTACLE_DISTANCE);
   // }));
   // while (true) {
-  //   //Serial.println(servo.read());
-  //   servo.write(0);
+  //   Serial.println(getSonar());
   //   delay(5);
   // }
   for (int i = 0; i <= 5; i++) { // figure 8 5 times then stop
 
-    driveForwardAnglePID(200, 7.0, 250, firstExitAngle, ([]() {
+    driveForwardAnglePID(255, 7.0, 250, firstExitAngle, ([]() {
       return (getSonar() <= 30);
     }));
-    followArcUltrasonicPID(100, 255, 3.5, 15, secondExitAngle);
+    //followArcUltrasonicPID(100, 255, 3.5, 15, secondExitAngle);
+    followArcUltrasonicPID(180, 255, 10.0, 28, secondExitAngle);
     motorRun(0, 0);
     servo.write(rightAngle);
-    driveForwardAnglePID(200, 7.0, 250, secondExitAngle, ([]() {
+    driveForwardAnglePID(255, 7.0, 250, secondExitAngle, ([]() {
       return (getSonar() <= 30);
     }));
-    followArcUltrasonicPID(255, 100, 1.8, 25, firstExitAngle);
+    followArcUltrasonicPID(255, 180, 10.0, 28, firstExitAngle);
     motorRun(0, 0);
     servo.write(leftAngle);
   }

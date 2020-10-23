@@ -22,4 +22,5 @@ c:\Users\manas\Dev\IMU-Arduino-Robot\build\sketch\Figure_Eight.ino.cpp.o: \
  C:\Users\manas\Documents\Arduino\libraries\Adafruit_BNO055/utility/matrix.h \
  C:\Users\manas\Documents\Arduino\libraries\Adafruit_BNO055/utility/vector.h \
  C:\Users\manas\Documents\Arduino\libraries\Adafruit_BNO055/utility/quaternion.h \
- C:\Users\manas\Documents\Arduino\libraries\Adafruit_BNO055/utility/imumaths.h
+ C:\Users\manas\Documents\Arduino\libraries\Adafruit_BNO055/utility/imumaths.h \
+ C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\src/SoftwareSerial.h
