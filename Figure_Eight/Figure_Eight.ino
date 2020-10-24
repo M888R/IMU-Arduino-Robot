@@ -90,12 +90,24 @@ void debugPrintIMUData() {
 }
 
 void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targetDistance, double exitAngle) {
+
+  /** REASON FOR atan2:
+   * Adafruit's IMU api reports angles with the range [0, 360)
+   * When you add/subtract them to find the error which will later be used in PID,
+   * You have issues with the error not being the fastest way to the target
+   * i.e. if you have a target of 0, and are currently at an angle of 359, you'll do
+   * target - current, or 0 - 359, and your error will be -359.
+   * The most optimal error there should actually just be +1, because the robot should turn left by 1 degrees
+   * instead of turning right by 359 degrees.
+   * atan2(sin(error), cos(error)) is a quick and dirty way to constrain the angles to (-180, 180]
+   * Doing so on the error means that the error will not only be never > 360, but it will also appropriately
+   * change the robot's turning direction according to what's most efficient.
+  */ 
   double current = getYaw();
   current *= PI/180.0;
   current = atan2(sin(current), cos(current));
   current *= 180.0/PI;
-  // Serial.print("\tangle: ");
-  // Serial.print(current);
+
   double previousAngleError = exitAngle - current;
   previousAngleError *= PI / 180.0;
   previousAngleError = atan2(sin(previousAngleError), cos(previousAngleError));
@@ -106,7 +118,7 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
   while (true) {
 
     float currentDistance = getSonar();
-    //currentDistance = (currentDistance > 200) ? 200.0 : currentDistance;
+
     if ((currentDistance - previousSonarReading) >= 75) {
       currentDistance = previousSonarReading; // ignore spikes in sonar reading
     }
@@ -118,23 +130,13 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
     }
 
     double correctionPower = distanceError * kP;
-    // if (distanceError > 0 && distanceError <= 5) {
-    //   correctionPower -= 100; // fake integral term
-    // }
+    
     float leftPower = 0;
     float rightPower = 0;
     
     if (currentServoAngle < straightAngle) { // right-facing
       leftPower = leftSpeed - correctionPower;
       rightPower = rightSpeed + correctionPower;
-      // Serial.print("right-facing, leftSpeed: ");
-      // Serial.print(leftPower, 4);
-      // Serial.print("\trightSpeed: ");
-      // Serial.print(rightPower, 4);
-      // Serial.print("\tcurrentDistance: ");
-      // Serial.print(currentDistance, 4);
-      //Serial.println("");
-      
     } else { // currentServoAngle >= straightAngle, left-facing
       leftPower = leftSpeed + correctionPower;
       rightPower = rightSpeed - correctionPower;
@@ -150,24 +152,13 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
     current *= PI/180.0;
     current = atan2(sin(current), cos(current));
     current *= 180.0/PI;
-    // Serial.print("\tangle: ");
-    // Serial.print(current);
+
     double angleError = tempExitAngle - current;
     angleError *= PI / 180.0;
     angleError = atan2(sin(angleError), cos(angleError));
     angleError *= 180.0 / PI;
-    // Serial.print("\tangleError: ");
-    // Serial.print(angleError);
-    // Serial.println("");
 
-    // bluetooth.print("dist: ");
-    // bluetooth.print(currentDistance);
-    // bluetooth.print("\tang: ");
-    // bluetooth.print(current);
-
-    // if (abs(angleError) <= 5) { // remove one of these as a test
-    //   break;
-    // }
+    // If the sign of the error changed, the robot has probably gone past the target so let's stop here
     if (sgn(angleError) != sgn(previousAngleError) && abs(angleError) <= 50) {
       break;
     }
@@ -194,15 +185,7 @@ void driveForwardAnglePID(int speed, float kP, int wait, double angleTarget, boo
     error *= PI / 180.0;
     error = atan2(sin(error), cos(error));
     error = error * 180.0 / PI;
-  //  Serial.print("current: ");
-  //  Serial.print(current * 180.0 / PI);
-  //  Serial.print("\ttarget: ");
-  //  Serial.print(target * 180.0 / PI);
-  // //  Serial.print("\tcurrentCorrected: ");
-  // //  Serial.print(currentCorrected);
-  //  Serial.print("\terror: ");
-  //  Serial.print(error);
-  //   Serial.println("");
+
     error *= kP;
     
     motorRun(speed + error, speed - error); 
@@ -275,10 +258,7 @@ float getSonar() {
     distance = (float)pingTime * SOUND_VELOCITY / 2 / 10000; // calculate the distance based on the time
   else
     distance = MAX_DISTANCE;
-  // if ((distance - previousSonarReading) >= 75) {
-  //   distance = previousSonarReading; // ignore spikes in sonar reading
-  // }
-  //distance = (previousSonarReading * 0.5) + (distance * 0.5);
+    
   previousSonarReading = distance;
 
   return distance;
@@ -393,36 +373,41 @@ void setup() {
 //=== LOOP FUNCTION === //
 
 void loop() {
-  // servo.write(straightAngle);
-  // driveForwardAnglePID(100, 7.0, &isWithinDistance);
+
   servo.write(leftAngle);
   delay(500);
 
-  // while (true) {
-  //   motorRun(255, 80);
-  // }
-  // driveForwardAnglePID(200, 7.0, 2000, 45, ([]() {
-  //   return (getSonar() <= OBSTACLE_DISTANCE);
-  // }));
-  // while (true) {
-  //   Serial.println(getSonar());
-  //   delay(5);
-  // }
-  for (int i = 0; i <= 5; i++) { // figure 8 5 times then stop
+  for (int i = 0; i <= 5; i++) { // figure 8 6 times then stop
 
+    // Drive forward while correcting the robot's angle until it sees an obstacle
     driveForwardAnglePID(255, 7.0, 250, firstExitAngle, ([]() {
       return (getSonar() <= OBSTACLE_DISTANCE);
     }));
-    //followArcUltrasonicPID(100, 255, 3.5, 15, secondExitAngle);
+
+    // follow around the circle until it reaches the right angle to transfer to the next circle
     followArcUltrasonicPID(180, 255, 10.0, 22, secondExitAngle);
+
+    // briefly (as in, around 50 milliseconds) stop
     motorRun(0, 0);
+    
+    // angle the servo to the right in order to get ready to follow the next circle
     servo.write(rightAngle);
+
+    // drive straight while correcting the robot's angle until it sees a circle
     driveForwardAnglePID(255, 7.0, 250, secondExitAngle, ([]() {
       return (getSonar() <= OBSTACLE_DISTANCE);
     }));
+
+    // follow around the circle again until it reaches the right angle to transfer
     followArcUltrasonicPID(255, 180, 10.0, 22, firstExitAngle);
+
+    // briefly stop again
     motorRun(0, 0);
+
+    // turn the servo left in order to make sure you see the circle
     servo.write(leftAngle);
+
+    // repeat
   }
   motorRun(0, 0);
   delay(20000);
