@@ -35,7 +35,7 @@ const   u8 leftAngle  = 155;// Left
 
 // point of reference: left side of one of the circles
 const int firstExitAngle = 0; // was 32
-const int secondExitAngle = 80; // was 155
+const int secondExitAngle = 78; // was 155
 
 double previousSonarReading = 0;
 
@@ -112,6 +112,11 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
     }
 
     float distanceError = targetDistance - currentDistance;
+
+    if (distanceError != 0) {
+      distanceError = sqrt(15.0 * abs(distanceError)) * (abs(distanceError) / distanceError);
+    }
+
     double correctionPower = distanceError * kP;
     // if (distanceError > 0 && distanceError <= 5) {
     //   correctionPower -= 100; // fake integral term
@@ -160,9 +165,9 @@ void followArcUltrasonicPID(int leftSpeed, int rightSpeed, float kP, double targ
     // bluetooth.print("\tang: ");
     // bluetooth.print(current);
 
-    if (abs(angleError) <= 5) { // remove one of these as a test
-      break;
-    }
+    // if (abs(angleError) <= 5) { // remove one of these as a test
+    //   break;
+    // }
     if (sgn(angleError) != sgn(previousAngleError) && abs(angleError) <= 50) {
       break;
     }
@@ -409,13 +414,13 @@ void loop() {
       return (getSonar() <= OBSTACLE_DISTANCE);
     }));
     //followArcUltrasonicPID(100, 255, 3.5, 15, secondExitAngle);
-    followArcUltrasonicPID(180, 255, 10.0, 28, secondExitAngle);
+    followArcUltrasonicPID(180, 255, 10.0, 22, secondExitAngle);
     motorRun(0, 0);
     servo.write(rightAngle);
     driveForwardAnglePID(255, 7.0, 250, secondExitAngle, ([]() {
       return (getSonar() <= OBSTACLE_DISTANCE);
     }));
-    followArcUltrasonicPID(255, 180, 10.0, 28, firstExitAngle);
+    followArcUltrasonicPID(255, 180, 10.0, 22, firstExitAngle);
     motorRun(0, 0);
     servo.write(leftAngle);
   }
