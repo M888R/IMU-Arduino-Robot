@@ -1,6 +1,6 @@
-c:\Users\manas\Dev\IMU-Arduino-Robot\build\libraries\Adafruit_Unified_Sensor\Adafruit_Sensor.cpp.o: \
- C:\Users\manas\Documents\Arduino\libraries\Adafruit_Unified_Sensor\Adafruit_Sensor.cpp \
- C:\Users\manas\Documents\Arduino\libraries\Adafruit_Unified_Sensor\Adafruit_Sensor.h \
+c:\Users\Manas\Documents\USC\ Classes\AME\ 101\Car\ Code\Project\ 1\build\libraries\Adafruit_Unified_Sensor\Adafruit_Sensor.cpp.o: \
+ C:\Users\Manas\Documents\Arduino\libraries\Adafruit_Unified_Sensor\Adafruit_Sensor.cpp \
+ C:\Users\Manas\Documents\Arduino\libraries\Adafruit_Unified_Sensor\Adafruit_Sensor.h \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino/Arduino.h \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino/binary.h \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino/WCharacter.h \

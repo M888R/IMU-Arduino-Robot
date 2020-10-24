@@ -1,4 +1,4 @@
-c:\Users\manas\Dev\IMU-Arduino-Robot\build\core\wiring.c.o: \
+c:\Users\Manas\Documents\USC\ Classes\AME\ 101\Car\ Code\Project\ 1\build\core\wiring.c.o: \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino\wiring.c \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino\wiring_private.h \
  C:\Program\ Files\ (x86)\Arduino\hardware\arduino\avr\cores\arduino\Arduino.h \
